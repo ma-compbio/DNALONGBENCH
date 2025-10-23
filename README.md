@@ -101,7 +101,7 @@ Following the commands below to download our code:
 conda create -n dnalongbench python=3.9 -y 
 conda activate dnalongbench
 
-git clone https://github.com/wenduocheng/DNALongBench.git
+git clone https://github.com/ma-compbio/DNALONGBENCH.git
 pip install .
 ```
 

@@ -11,6 +11,20 @@ from kipoiseq import Interval
 
 data_path = "data_long_range_dna/eQTL"
 
+HYENADNA_ALPHABET = {'A': 7, 'C': 8, 'G': 9, 'T': 10, 'N': 11}
+
+_DNA_TOKEN_LOOKUP = np.full(256, 6, dtype=np.int64)  # UNK
+for _base, _token_id in HYENADNA_ALPHABET.items():
+    _DNA_TOKEN_LOOKUP[ord(_base)] = _token_id
+    _DNA_TOKEN_LOOKUP[ord(_base.lower())] = _token_id
+
+def encode_hyenadna(sequence):
+    raw = np.frombuffer(
+        sequence.encode('ascii', errors='replace'),
+        dtype=np.uint8,
+    )
+    return _DNA_TOKEN_LOOKUP[raw]
+
 
 class FastaStringExtractor:
     """
@@ -100,11 +114,8 @@ class EQTLseqDataSet(torch.utils.data.IterableDataset):
         # iterate over the data
         target2int = {'positive':1, 'negative':0}
         for index, record in enumerate(self.dataset):
-            # convert the sequence to one-hot encoding
-            sequence_ref = one_hot_encode(record[0])[2028500: -2028500, :]
-            sequence_ref = np.argmax(sequence_ref, axis=-1)
-            sequence_alt = one_hot_encode(record[1])[2028500: -2028500, :]
-            sequence_alt = np.argmax(sequence_alt, axis=-1)
+            sequence_ref = encode_hyenadna(record[0])
+            sequence_alt = encode_hyenadna(record[1])
             target = np.array(target2int[record[2]]).astype('int8')
             yield (sequence_ref, sequence_alt, target)
             # yield {
